@@ -3,25 +3,41 @@ import os
 import time
 import cv2
 
+
+VIDEO_PATH = "vision/samples/sample2.mp4"
 IMAGE_PATH = os.path.join('vision/data', 'images/sample2')
-# labels = ['puck', 'player1', 'player2', 'table']
-num_imgs = 50
+num_imgs_per_video = 50
 
-## collect images
-cap = cv2.VideoCapture("vision/samples/sample2.mp4")
+cap = cv2.VideoCapture(VIDEO_PATH)
 
-# for label in labels:
-for img_num in range(num_imgs):
-    # print(f'Collecting image {img_num} for {label}')
-    
+# gain the basic information of the video
+num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+fps = cap.get(cv2.CAP_PROP_FPS)
+
+# calculate the interval of frames to capture
+frame_interval = max(1, num_frames // num_imgs_per_video)
+
+img_num = 0
+while True:
     ret, frame = cap.read()
-    img_name = os.path.join(IMAGE_PATH, str(uuid.uuid1())+'.jpg')
-    cv2.imwrite(img_name, frame)
-    # cv2.imshow('frame', frame)
-    time.sleep(3)
 
-    if cv2.waitKey(10) & 0xFF == ord('q'):
+    if not ret:
+        print('Video end.')
         break
-    
+
+    # 每隔一定帧率保存一帧图像
+    if img_num % frame_interval == 0:
+        img_name = os.path.join(IMAGE_PATH, str(uuid.uuid1())+'.jpg')
+        cv2.imwrite(img_name, frame)
+        print(f'Image {img_num // frame_interval + 1} captured')
+
+    img_num += 1
+
+    if img_num >= num_frames or img_num // frame_interval >= num_imgs_per_video:
+        break
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
 cap.release()
 cv2.destroyAllWindows()
