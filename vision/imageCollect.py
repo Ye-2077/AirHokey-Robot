@@ -25,7 +25,7 @@ while True:
         print('Video end.')
         break
 
-    # 每隔一定帧率保存一帧图像
+    # save images
     if img_num % frame_interval == 0:
         img_name = os.path.join(IMAGE_PATH, str(uuid.uuid1())+'.jpg')
         cv2.imwrite(img_name, frame)
