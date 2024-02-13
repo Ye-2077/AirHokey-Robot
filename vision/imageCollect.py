@@ -4,8 +4,8 @@ import time
 import cv2
 
 
-VIDEO_PATH = "vision/samples/sample2.mp4"
-IMAGE_PATH = os.path.join('vision/data', 'images/sample2')
+VIDEO_PATH = "vision/samples/sample1.mp4"
+IMAGE_PATH = os.path.join('vision/data', 'images/sample1')
 num_imgs_per_video = 50
 
 cap = cv2.VideoCapture(VIDEO_PATH)
@@ -14,7 +14,6 @@ cap = cv2.VideoCapture(VIDEO_PATH)
 num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 fps = cap.get(cv2.CAP_PROP_FPS)
 
-# calculate the interval of frames to capture
 frame_interval = max(1, num_frames // num_imgs_per_video)
 
 img_num = 0
