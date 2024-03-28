@@ -1,0 +1,4 @@
+player
+puck
+table
+gate
