@@ -1,7 +1,11 @@
+## uncomment the following 3 line if you are using Windows
+import pathlib
+temp = pathlib.PosixPath
+pathlib.PosixPath = pathlib.WindowsPath
+#########################################################
+
 import cv2
 from vision.detector import Detector
-
-
 
 if __name__ == '__main__':
     cap = cv2.VideoCapture('vision/samples/sample1.mp4')
