@@ -5,12 +5,14 @@ import numpy as np
 import socket
 import time
 import math
+import pygame
 
 from vision.detector import Detector
 from motion.robot import robot
 from motion.control import Controller
 from wifi.CommandServer import CommandServer
 from motion.kinematics import inverse_kinematics
+from motion.visualization import VisualSim
 
 def video_processing_and_control(cap, 
                                  detector, 
@@ -167,6 +169,48 @@ def oscillating_angles_thread(theta_queue, period=4, amplitude=1.57, threshold=0
         time.sleep(0.1)  # Sleep at the end of the loop to control the update frequency
 
 
+def sim_control_thread(theta_queue):
+    sim = VisualSim(robot(a1=200, a2=200, b1=250, b2=250, w=250))
+    running = True
+    theta1 = np.pi / 2
+    theta2 = np.pi / 2
+    while running:
+        mouse_x, mouse_y = pygame.mouse.get_pos()  # Get current mouse position
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Calculate inverse kinematics
+        if mouse_x < 130:
+            target_x = -130
+        elif mouse_x > 370:
+            target_x = 370
+        else:
+            target_x = (mouse_x-sim.center_x)*2
+
+        # print("target_x: ", target_x)
+        # print("mouse_x: ", mouse_x)
+
+        target_y = 220
+
+        # try:
+        #     target_y = (mouse_y-sim.center_y)*2
+        #     theta1, theta2 = inverse_kinematics(target_x, target_y, sim.robot)
+        #     if theta1 is not None and theta2 is not None:
+        #         theta_queue.put((theta1-np.pi/2, np.pi-theta2-np.pi/2))
+        # except Exception as e:
+        #     print(f"Error: {e}")
+        #     continue
+
+        theta1, theta2 = inverse_kinematics(target_x, target_y, sim.robot)
+        theta_queue.put((theta1-np.pi/2, np.pi-theta2-np.pi/2))
+
+
+        sim.visualize(theta1, theta2, mouse_x, mouse_y, target_x, target_y)
+        pygame.time.wait(50)  # Delay to slow down the animation
+
+    pygame.quit()
+    
 
 
 if __name__ == '__main__':
@@ -183,10 +227,15 @@ if __name__ == '__main__':
     input_thread = threading.Thread(target=input_and_enqueue_angles, args=(theta_queue,))
     # oscillating_thread = threading.Thread(target=oscillating_angles_thread, args=(theta_queue,))
     # smooth_oscillating_thread = threading.Thread(target=smooth_oscillating_angles_thread, args=(theta_queue,))
+    sim_thread = threading.Thread(target=sim_control_thread, args=(theta_queue,))
     server_thread = threading.Thread(target=server_thread, args=(server,theta_queue))
+
+    read_and_print_theta = threading.Thread(target=read_and_print_theta, args=(theta_queue,))
 
     # Start threads
     server_thread.start()
+    sim_thread.start()
+    read_and_print_theta.start()
     input_thread.start()
     # oscillating_thread.start()
     # smooth_oscillating_thread.start()

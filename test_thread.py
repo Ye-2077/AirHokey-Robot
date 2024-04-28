@@ -2,11 +2,15 @@ import threading
 import queue
 import cv2
 import numpy as np
+import pygame
 
 from vision.detector import Detector
 from motion.robot import robot
 from motion.control import Controller
 from wifi.CommandServer import CommandServer
+from motion.visualization import VisualSim
+from motion.kinematics import *
+from motion.robot import robot as Robot
 
 def video_processing_and_control(cap, 
                                  detector, 
@@ -78,6 +82,31 @@ def server_thread(cm_server,queue):
             print(f"Exception: {e}")
     
 
+def sim_thread(theta_queue):
+    sim = VisualSim(Robot(a1=400, a2=400, b1=500, b2=500, w=500))
+    running = True
+    theta1 = np.pi / 2
+    theta2 = np.pi / 2
+    while running:
+        mouse_x, mouse_y = pygame.mouse.get_pos()  # Get current mouse position
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+    
+        theta1, theta2 = theta_queue.get()
+        if theta1 is None or theta2 is None:
+            continue
+        target_x, target_y = forward_kinematics(theta1, theta2, Robot(a1=400, a2=400, b1=500, b2=500, w=500, working_mode='++'))
+        target_y = 200
+
+        sim.visualize(theta1, theta2, mouse_x, mouse_y, target_x, target_y)
+        pygame.time.wait(50)  # Delay to slow down the animation
+
+    pygame.quit()
+
+
+
 
 if __name__ == '__main__':
     bind_ip="0.0.0.0"
@@ -105,9 +134,11 @@ if __name__ == '__main__':
     video_thread = threading.Thread(target=video_processing_and_control, args=(cap, detector, controller, theta_queue, tabel, tabel[0], tabel[2], 400))
     print_thread = threading.Thread(target=read_and_print_theta, args=(theta_queue,))
     server_thread = threading.Thread(target=server_thread, args=(server,theta_queue))
+    sim_thread = threading.Thread(target=sim_thread, args=(theta_queue,))
 
     # Start threads
     video_thread.start()
+    sim_thread.start()
     server_thread.start()
     # print_thread.start()
 

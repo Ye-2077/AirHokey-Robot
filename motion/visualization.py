@@ -30,6 +30,10 @@ class VisualSim:
         # Font setup
         self.font = pygame.font.Font(None, 24)
 
+
+        self.theta1 = 0
+        self.theta2 = 0
+
     def visualize(self, theta1, theta2, mouse_x, mouse_y, target_x, target_y):
         # Clear the screen at the start of each draw call
         self.screen.fill(self.background_color)
@@ -61,9 +65,9 @@ class VisualSim:
         pygame.draw.circle(self.screen, self.joint_color, points[3], 5)
 
         # Display mouse coordinates
-        text = self.font.render(f"Mouse: {mouse_x}, {mouse_y}", True, (255, 255, 255))
+        text = self.font.render(f"Mouse: {(mouse_x-self.center_x)*2}, {(mouse_y-self.center_y)*2}", True, (255, 255, 255))
         text_theta1 = self.font.render(f"Theta1: {theta1:.2f}", True, (255, 255, 255))
-        text_theta2 = self.font.render(f"Theta2: {theta2:.2f}", True, (255, 255, 255))
+        text_theta2 = self.font.render(f"Theta2: {np.pi-theta2:.2f}", True, (255, 255, 255))
         text_target = self.font.render(f"Target: {target_x}, {target_y}", True, (255, 255, 255))
 
         self.screen.blit(text, (self.width - text.get_width() - 10, self.height - text.get_height() - 10))
@@ -91,14 +95,14 @@ class VisualSim:
             else:
                 target_x = (mouse_x-self.center_x)*2
 
-            print("target_x: ", target_x)
-            print("mouse_x: ", mouse_x)
+            # print("target_x: ", target_x)
+            # print("mouse_x: ", mouse_x)
 
             target_y = 200
             theta1, theta2 = inverse_kinematics(target_x, target_y, self.robot)
-
-
-
+           
+            self.theta1 = theta1
+            self.theta2 = theta2
 
             self.visualize(theta1, theta2, mouse_x, mouse_y, target_x, target_y)
 
