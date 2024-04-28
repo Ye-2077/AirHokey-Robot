@@ -1,3 +1,11 @@
+## uncomment the following 3 line if you are using Windows
+import pathlib
+temp = pathlib.PosixPath
+pathlib.PosixPath = pathlib.WindowsPath
+#########################################################
+
+
+
 import cv2
 import matplotlib.pyplot as plt
 import math
@@ -131,6 +139,7 @@ class Detector:
             last_point = (next_x, next_y)
         
         if render_trajectory:
+            cv2.circle(frame, future_trajectory[-1], 10, (0, 0, 255), -1)
             for i in range(1, len(future_trajectory)):
                 cv2.line(frame, future_trajectory[i - 1], future_trajectory[i], (0, 0, 255), 4)
         
